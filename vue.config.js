@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackExcludeAssetsPlugin = require('html-webpack-exclude-assets-plugin');
 
 function resolve(dir) {
   return path.join(__dirname, dir);
@@ -32,5 +33,8 @@ module.exports = {
         symbolId: 'icon-[name]',
       })
       .end();
+
+    config.plugin('assets')
+      .use(HtmlWebpackExcludeAssetsPlugin);
   },
 };
