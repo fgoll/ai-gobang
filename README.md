@@ -1,5 +1,8 @@
 # ai-gobang
 
+## 演示地址: 
+[http://gobang.swifterjh.com](http://gobang.swifterjh.com)
+
 ## Project setup
 ```
 yarn install
