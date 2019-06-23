@@ -1,7 +1,8 @@
 import * as STATUS from '@/status';
 import ai from '@/ai';
+import SCORE from '@/ai/score';
+import win from '@/ai/win';
 
-console.log(ai);
 const getBoard = () => [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -20,12 +21,16 @@ const getBoard = () => [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
+
+const copy = a => a.map(r => r.slice()).slice();
+
+
 export default {
   data() {
     return {
-      board: null,
+      board: [],
       steps: [],
-
+      fives: [],
       status: STATUS.PLAYING,
     };
   },
@@ -53,16 +58,19 @@ export default {
 
     _set(position, role) {
       const [x, y] = position;
-      this.board[x][y] = role;
+
+      const board = copy(this.board);
+      board[x][y] = role;
       const step = {
         position,
         role,
       };
       this.steps.push(step);
+
+      this.board = board;
     },
 
     set(position) {
-      console.log(position, this.status);
       if (this.status !== STATUS.PLAYING) return;
 
       const [x, y] = position;
@@ -72,17 +80,52 @@ export default {
       }
 
       this._set(position, 2);
+
       this.status = STATUS.THINKING;
       this.startTime = +new Date();
 
-      this.handleAiPut(x, y);
+      setTimeout(() => {
+        this.handleAiPut(x, y);
+      }, 1000);
     },
 
     handleAiPut(x, y) {
-      const position = ai.turn(x, y);
-
-      this._set(position, 1);
+      const p = ai.turn(x, y);
+      const { score, step } = p;
+      this._set([p[0], p[1]], 1);
       this.status = STATUS.PLAYING;
+
+      if (score >= SCORE.FIVE / 2) {
+        if (step <= 1) {
+          this.fives = win(this.board);
+          console.log('you lose');
+          this.status = STATUS.LOCKED;
+        }
+      } else if (score <= -SCORE.FIVE / 2) {
+        if (step <= 1) {
+          console.log('you win');
+          this.status = STATUS.LOCKED;
+          this.fives = win(this.board);
+        }
+      }
+    },
+
+    isLast(p) {
+      if (!this.steps.length) return false;
+      const last = this.steps[this.steps.length - 1].position;
+
+      return last[0] === p[0] && last[1] === p[1];
+    },
+
+    isFives(p) {
+      if (!this.fives.length) return false;
+      for (let i = 0; i < this.fives.length; i++) {
+        const f = this.fives[i];
+        if (p[0] === f[0] && p[1] === f[1]) {
+          return true;
+        }
+      }
+      return false;
     },
 
   },
