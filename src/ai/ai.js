@@ -14,7 +14,7 @@ class AI {
   }
 
   begin() {
-    const p = m(undefined, 4);
+    const p = m(undefined, 5);
     board.put(p, ROLE.com);
     return p;
   }

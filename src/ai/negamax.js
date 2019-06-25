@@ -9,7 +9,7 @@ const MIN = -1 * MAX;
 
 let start;
 
-function r(deep, role, step, steps) {
+function r(deep, role, step, steps, alpha, beta) {
   const _e = board.evaluate(role);
 
   const leaf = {
@@ -40,7 +40,7 @@ function r(deep, role, step, steps) {
     const p = points[i];
     board.put(p, role);
 
-    const v = r(deep - 1, ROLE.reverse(role), step + 1, steps);
+    const v = r(deep - 1, ROLE.reverse(role), step + 1, steps, -beta, -alpha);
 
     v.score *= -1;
     board.remove(p);
@@ -48,26 +48,34 @@ function r(deep, role, step, steps) {
     if (v.score > best.score) {
       best = v;
     }
+
+    alpha = Math.max(best.score, alpha);
+
+    if (math.greatThan(v.score, beta)) {
+      // console.log(`AB Cut [${p[0]},${p[1]}]${v.score} >= ${beta}`);
+      v.score = MAX - 1;
+
+      return v;
+    }
   }
   return best;
 }
 
-function negamax(candidates, role, deep) {
-  let max = 0;
+function negamax(candidates, role, deep, alpha, beta) {
   for (let i = 0; i < candidates.length; i++) {
     const p = candidates[i];
     board.put(p, role);
 
     const steps = [p];
 
-    const v = r(deep - 1, ROLE.reverse(role), 1, steps.slice(0));
+    const v = r(deep - 1, ROLE.reverse(role), 1, steps.slice(0), -beta, -alpha);
     v.score *= -1;
-    max = Math.max(max, v.score);
+    alpha = Math.max(alpha, v.score);
     board.remove(p);
     p.v = v;
   }
 
-  return max;
+  return alpha;
 }
 
 
@@ -77,7 +85,7 @@ function deeping(candidates, role, deep) {
   let bestScore;
 
   for (let i = 2; i < deep; i += 2) {
-    bestScore = negamax(candidates, role, i);
+    bestScore = negamax(candidates, role, i, MIN, MAX);
 
     if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break;
   }
@@ -117,7 +125,7 @@ function deeping(candidates, role, deep) {
 
 export default function deepAll(role, deep) {
   role = role || ROLE.com;
-  deep = deep || 8;
+  deep = deep || 4;
 
   const candidates = board.gen(role);
   return deeping(candidates, role, deep);

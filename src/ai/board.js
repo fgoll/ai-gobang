@@ -7,18 +7,29 @@ import createArray from './array';
 import scorePoint from './evaluate';
 
 class Board {
-  init(size) {
+  init(sizeOrBoard) {
     this.allSteps = [];
     this.board = [];
     this.count = 0; // 棋子数
 
-    for (let i = 0; i < size; i++) {
-      const row = [];
-      for (let j = 0; j < size; j++) {
-        row.push(0);
+    let size;
+    if (sizeOrBoard.length) {
+      this.board = sizeOrBoard;
+      size = this.board.length;
+      for (let i = 0; i < this.board.length; i++) {
+        this.count += this.board[i].filter(d => d > 0).length;
       }
-      this.board.push(row);
+    } else {
+      size = sizeOrBoard;
+      for (let i = 0; i < size; i++) {
+        const row = [];
+        for (let j = 0; j < size; j++) {
+          row.push(0);
+        }
+        this.board.push(row);
+      }
     }
+
 
     this.comScore = createArray(size, size);
     this.humScore = createArray(size, size);
